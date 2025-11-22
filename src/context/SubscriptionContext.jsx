@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore'
+import { db } from '../firebase'
+import { useAuth } from './AuthContext'
 
 const SubscriptionContext = createContext()
 
@@ -7,21 +10,35 @@ export function useSubscriptions() {
 }
 
 export function SubscriptionProvider({ children }) {
-  const [subscriptions, setSubscriptions] = useState(() => {
-    const saved = localStorage.getItem('subscriptions')
-    return saved ? JSON.parse(saved) : []
-  })
+  const [subscriptions, setSubscriptions] = useState([])
+  const { currentUser } = useAuth()
 
   useEffect(() => {
-    localStorage.setItem('subscriptions', JSON.stringify(subscriptions))
-  }, [subscriptions])
+    if (!currentUser) {
+      setSubscriptions([])
+      return
+    }
 
-  const addSubscription = (subscription) => {
-    setSubscriptions(prev => [...prev, { ...subscription, id: crypto.randomUUID() }])
+    const q = query(collection(db, `users/${currentUser.uid}/subscriptions`))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const subs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      setSubscriptions(subs)
+    })
+
+    return unsubscribe
+  }, [currentUser])
+
+  const addSubscription = async (subscription) => {
+    if (!currentUser) return
+    await addDoc(collection(db, `users/${currentUser.uid}/subscriptions`), subscription)
   }
 
-  const removeSubscription = (id) => {
-    setSubscriptions(prev => prev.filter(sub => sub.id !== id))
+  const removeSubscription = async (id) => {
+    if (!currentUser) return
+    await deleteDoc(doc(db, `users/${currentUser.uid}/subscriptions`, id))
   }
 
   const totalCost = subscriptions.reduce((acc, sub) => acc + Number(sub.cost), 0)

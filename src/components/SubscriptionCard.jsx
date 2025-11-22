@@ -41,7 +41,16 @@ export default function SubscriptionCard({ subscription }) {
       </div>
 
       <button 
-        onClick={() => removeSubscription(subscription.id)}
+        onClick={async () => {
+          if (confirm('Are you sure?')) {
+            try {
+              await removeSubscription(subscription.id)
+            } catch (error) {
+              console.error("Error removing subscription: ", error)
+              alert("Failed to remove subscription")
+            }
+          }
+        }}
         style={{
           width: '100%',
           padding: '0.5rem',
@@ -50,7 +59,8 @@ export default function SubscriptionCard({ subscription }) {
           color: 'var(--danger-color)',
           borderRadius: '0.5rem',
           fontSize: '0.875rem',
-          transition: 'all 0.2s'
+          transition: 'all 0.2s',
+          cursor: 'pointer'
         }}
       >
         Remove

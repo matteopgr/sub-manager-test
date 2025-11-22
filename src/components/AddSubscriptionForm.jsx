@@ -10,10 +10,20 @@ export default function AddSubscriptionForm({ onSave }) {
     cycle: 'monthly'
   })
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    addSubscription(formData)
-    onSave()
+    setIsSubmitting(true)
+    try {
+      await addSubscription(formData)
+      onSave()
+    } catch (error) {
+      console.error("Error adding subscription: ", error)
+      alert("Failed to save subscription")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const inputStyle = {
@@ -75,6 +85,7 @@ export default function AddSubscriptionForm({ onSave }) {
 
         <button
           type="submit"
+          disabled={isSubmitting}
           style={{
             width: '100%',
             padding: '1rem',
@@ -84,10 +95,12 @@ export default function AddSubscriptionForm({ onSave }) {
             borderRadius: '0.5rem',
             fontWeight: 'bold',
             fontSize: '1rem',
-            marginTop: '1rem'
+            marginTop: '1rem',
+            opacity: isSubmitting ? 0.7 : 1,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
           }}
         >
-          Save Subscription
+          {isSubmitting ? 'Saving...' : 'Save Subscription'}
         </button>
       </form>
     </div>
