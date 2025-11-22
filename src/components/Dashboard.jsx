@@ -29,6 +29,20 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <div style={{ marginBottom: '1rem', textAlign: 'right' }}>
+        <a href="/subscriptions/add" style={{
+          display: 'inline-block',
+          padding: '0.75rem 1.5rem',
+          backgroundColor: 'var(--accent-color)',
+          color: '#0f172a',
+          textDecoration: 'none',
+          borderRadius: '0.5rem',
+          fontWeight: 'bold'
+        }}>
+          + Add Subscription
+        </a>
+      </div>
+
       <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
         {subscriptions.map(sub => (
           <SubscriptionCard key={sub.id} subscription={sub} />

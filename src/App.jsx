@@ -1,70 +1,73 @@
 import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { SubscriptionProvider } from './context/SubscriptionContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ExpensesProvider } from './context/ExpensesContext'
 import Dashboard from './components/Dashboard'
 import AddSubscriptionForm from './components/AddSubscriptionForm'
 import Login from './components/Login'
 import Signup from './components/Signup'
+import Navigation from './components/Navigation'
+import VariableExpenses from './components/VariableExpenses'
+import Home from './components/Home'
 
 function AppContent() {
-  const [view, setView] = React.useState('dashboard')
-  const [authView, setAuthView] = React.useState('login')
-  const { currentUser, logout } = useAuth()
+  const { currentUser, loading } = useAuth()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false)
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed)
+  }
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+  }
 
   if (!currentUser) {
-    return authView === 'login' 
-      ? <Login onSwitchToSignup={() => setAuthView('signup')} />
-      : <Signup onSwitchToLogin={() => setAuthView('login')} />
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    )
   }
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>SubManager</h1>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button 
-            onClick={() => setView(view === 'dashboard' ? 'add' : 'dashboard')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'var(--accent-color, #38bdf8)',
-              color: '#0f172a',
-              border: 'none',
-              borderRadius: '0.5rem',
-              fontWeight: '600'
-            }}
-          >
-            {view === 'dashboard' ? 'Add Subscription' : 'Back to Dashboard'}
-          </button>
-          <button 
-            onClick={logout}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: 'transparent',
-              color: 'var(--text-secondary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '0.5rem',
-              fontWeight: '600'
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-      
-      <main>
-        {view === 'dashboard' ? <Dashboard /> : <AddSubscriptionForm onSave={() => setView('dashboard')} />}
-      </main>
+    <div style={{ display: 'flex' }}>
+      <Navigation isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
+      <div style={{ 
+        flex: 1, 
+        marginLeft: isSidebarCollapsed ? '80px' : '250px', 
+        maxWidth: '1000px', 
+        padding: '2rem',
+        transition: 'margin-left 0.3s ease'
+      }}>
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/subscriptions" element={<Dashboard />} />
+            <Route path="/subscriptions/add" element={<AddSubscriptionForm onSave={() => window.history.back()} />} />
+            <Route path="/expenses" element={<VariableExpenses />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   )
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <SubscriptionProvider>
-        <AppContent />
-      </SubscriptionProvider>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <SubscriptionProvider>
+          <ExpensesProvider>
+            <AppContent />
+          </ExpensesProvider>
+        </SubscriptionProvider>
+      </AuthProvider>
+    </Router>
   )
 }
 

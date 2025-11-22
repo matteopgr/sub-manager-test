@@ -87,7 +87,7 @@ export default function Signup({ onSwitchToLogin }) {
       </form>
 
       <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-        Already have an account? <button onClick={onSwitchToLogin} style={{ background: 'none', border: 'none', color: 'var(--accent-color)', textDecoration: 'underline' }}>Log In</button>
+        Already have an account? <a href="/login" style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>Log In</a>
       </div>
     </div>
   )
