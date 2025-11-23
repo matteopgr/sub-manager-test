@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore'
+import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from './AuthContext'
 
@@ -40,6 +40,12 @@ export function ExpensesProvider({ children }) {
     await addDoc(collection(db, `users/${currentUser.uid}/variableExpenses`), expense)
   }
 
+  const updateExpense = async (id, updatedExpense) => {
+    if (!currentUser) return
+    const expenseRef = doc(db, `users/${currentUser.uid}/variableExpenses`, id)
+    await updateDoc(expenseRef, updatedExpense)
+  }
+
   const removeExpense = async (id) => {
     if (!currentUser) return
     await deleteDoc(doc(db, `users/${currentUser.uid}/variableExpenses`, id))
@@ -53,7 +59,7 @@ export function ExpensesProvider({ children }) {
   }
 
   return (
-    <ExpensesContext.Provider value={{ expenses, addExpense, removeExpense, getExpensesByMonth }}>
+    <ExpensesContext.Provider value={{ expenses, addExpense, updateExpense, removeExpense, getExpensesByMonth }}>
       {children}
     </ExpensesContext.Provider>
   )

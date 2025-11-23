@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useExpenses } from '../context/ExpensesContext'
 
 export default function VariableExpenses() {
-  const { expenses, addExpense, removeExpense } = useExpenses()
+  const { expenses, addExpense, updateExpense, removeExpense } = useExpenses()
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
@@ -10,19 +10,51 @@ export default function VariableExpenses() {
     category: 'General'
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      await addExpense(formData)
-      setFormData(prev => ({ ...prev, description: '', amount: '' }))
+      if (editingId) {
+        await updateExpense(editingId, formData)
+        setEditingId(null)
+      } else {
+        await addExpense(formData)
+      }
+      setFormData({
+        description: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        category: 'General'
+      })
     } catch (error) {
-      console.error("Error adding expense:", error)
-      alert("Failed to add expense")
+      console.error("Error saving expense:", error)
+      alert("Failed to save expense")
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleEdit = (expense) => {
+    setEditingId(expense.id)
+    setFormData({
+      description: expense.description,
+      amount: expense.amount,
+      date: expense.date,
+      category: expense.category || 'General'
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setFormData({
+      description: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      category: 'General'
+    })
   }
 
   const inputStyle = {
@@ -39,7 +71,24 @@ export default function VariableExpenses() {
   return (
     <div>
       <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '1rem', marginBottom: '2rem' }}>
-        <h2 style={{ marginTop: 0 }}>Add Variable Expense</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ margin: 0 }}>{editingId ? 'Edit Expense' : 'Add Variable Expense'}</h2>
+          {editingId && (
+            <button 
+              onClick={handleCancelEdit}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--text-secondary)',
+                color: 'var(--text-secondary)',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '0.25rem',
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
         <form onSubmit={handleSubmit}>
           <input
             required
@@ -81,7 +130,7 @@ export default function VariableExpenses() {
               opacity: isSubmitting ? 0.7 : 1
             }}
           >
-            {isSubmitting ? 'Adding...' : 'Add Expense'}
+            {isSubmitting ? 'Saving...' : (editingId ? 'Update Expense' : 'Add Expense')}
           </button>
         </form>
       </div>
@@ -95,7 +144,8 @@ export default function VariableExpenses() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            border: '1px solid var(--border-color)'
+            border: '1px solid var(--border-color)',
+            opacity: editingId === expense.id ? 0.5 : 1
           }}>
             <div>
               <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem' }}>{expense.description}</h3>
@@ -105,20 +155,40 @@ export default function VariableExpenses() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>€{Number(expense.amount).toFixed(2)}</span>
-              <button
-                onClick={() => {
-                  if(confirm('Delete this expense?')) removeExpense(expense.id)
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--danger-color)',
-                  cursor: 'pointer',
-                  padding: '0.5rem'
-                }}
-              >
-                ✕
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => handleEdit(expense)}
+                  disabled={editingId !== null}
+                  style={{
+                    background: 'none',
+                    border: '1px solid var(--accent-color)',
+                    color: 'var(--accent-color)',
+                    cursor: editingId !== null ? 'not-allowed' : 'pointer',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '0.25rem',
+                    fontSize: '0.875rem',
+                    opacity: editingId !== null ? 0.5 : 1
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => {
+                    if(confirm('Delete this expense?')) removeExpense(expense.id)
+                  }}
+                  disabled={editingId !== null}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--danger-color)',
+                    cursor: editingId !== null ? 'not-allowed' : 'pointer',
+                    padding: '0.5rem',
+                    opacity: editingId !== null ? 0.5 : 1
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           </div>
         ))}
