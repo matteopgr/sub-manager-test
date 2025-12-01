@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db } from '../../firebase'
 import { useAuth } from './AuthContext'
 
 const ExpensesContext = createContext()

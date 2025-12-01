@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSubscriptions } from '../context/SubscriptionContext'
 
-export default function SubscriptionCard({ subscription }) {
+export default function SubscriptionCard({ subscription, onEdit }) {
   const { removeSubscription } = useSubscriptions()
 
   const nextPayment = new Date(subscription.startDate)
@@ -40,31 +40,48 @@ export default function SubscriptionCard({ subscription }) {
         </p>
       </div>
 
-      <button 
-        onClick={async () => {
-          if (confirm('Are you sure?')) {
-            try {
-              await removeSubscription(subscription.id)
-            } catch (error) {
-              console.error("Error removing subscription: ", error)
-              alert("Failed to remove subscription")
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <button 
+          onClick={() => onEdit(subscription)}
+          style={{
+            flex: 1,
+            padding: '0.5rem',
+            backgroundColor: 'transparent',
+            border: '1px solid var(--accent-color)',
+            color: 'var(--accent-color)',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            cursor: 'pointer'
+          }}
+        >
+          Edit
+        </button>
+        <button 
+          onClick={async () => {
+            if (confirm('Are you sure?')) {
+              try {
+                await removeSubscription(subscription.id)
+              } catch (error) {
+                console.error("Error removing subscription: ", error)
+                alert("Failed to remove subscription")
+              }
             }
-          }
-        }}
-        style={{
-          width: '100%',
-          padding: '0.5rem',
-          backgroundColor: 'transparent',
-          border: '1px solid var(--danger-color)',
-          color: 'var(--danger-color)',
-          borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-          transition: 'all 0.2s',
-          cursor: 'pointer'
-        }}
-      >
-        Remove
-      </button>
+          }}
+          style={{
+            flex: 1,
+            padding: '0.5rem',
+            backgroundColor: 'transparent',
+            border: '1px solid var(--danger-color)',
+            color: 'var(--danger-color)',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            transition: 'all 0.2s',
+            cursor: 'pointer'
+          }}
+        >
+          Remove
+        </button>
+      </div>
     </div>
   )
 }

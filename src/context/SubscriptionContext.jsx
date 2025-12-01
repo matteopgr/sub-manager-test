@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query } from 'firebase/firestore'
-import { db } from '../firebase'
+import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query } from 'firebase/firestore'
+import { db } from '../../firebase'
 import { useAuth } from './AuthContext'
 
 const SubscriptionContext = createContext()
@@ -36,6 +36,12 @@ export function SubscriptionProvider({ children }) {
     await addDoc(collection(db, `users/${currentUser.uid}/subscriptions`), subscription)
   }
 
+  const updateSubscription = async (id, updatedSubscription) => {
+    if (!currentUser) return
+    const subRef = doc(db, `users/${currentUser.uid}/subscriptions`, id)
+    await updateDoc(subRef, updatedSubscription)
+  }
+
   const removeSubscription = async (id) => {
     if (!currentUser) return
     await deleteDoc(doc(db, `users/${currentUser.uid}/subscriptions`, id))
@@ -44,7 +50,7 @@ export function SubscriptionProvider({ children }) {
   const totalCost = subscriptions.reduce((acc, sub) => acc + Number(sub.cost), 0)
 
   return (
-    <SubscriptionContext.Provider value={{ subscriptions, addSubscription, removeSubscription, totalCost }}>
+    <SubscriptionContext.Provider value={{ subscriptions, addSubscription, updateSubscription, removeSubscription, totalCost }}>
       {children}
     </SubscriptionContext.Provider>
   )

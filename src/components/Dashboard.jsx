@@ -1,9 +1,28 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useSubscriptions } from '../context/SubscriptionContext'
 import SubscriptionCard from './SubscriptionCard'
+import AddSubscriptionForm from './AddSubscriptionForm'
 
 export default function Dashboard() {
   const { subscriptions, totalCost } = useSubscriptions()
+  const [isAdding, setIsAdding] = useState(false)
+  const [editingSubscription, setEditingSubscription] = useState(null)
+
+  const handleEdit = (sub) => {
+    setEditingSubscription(sub)
+    setIsAdding(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleCancel = () => {
+    setIsAdding(false)
+    setEditingSubscription(null)
+  }
+
+  const handleSave = () => {
+    setIsAdding(false)
+    setEditingSubscription(null)
+  }
 
   return (
     <div>
@@ -29,25 +48,45 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={{ marginBottom: '1rem', textAlign: 'right' }}>
-        <a href="/subscriptions/add" style={{
-          display: 'inline-block',
-          padding: '0.75rem 1.5rem',
-          backgroundColor: 'var(--accent-color)',
-          color: '#0f172a',
-          textDecoration: 'none',
-          borderRadius: '0.5rem',
-          fontWeight: 'bold'
-        }}>
-          + Add Subscription
-        </a>
-      </div>
+      {isAdding ? (
+        <div style={{ marginBottom: '2rem', backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: '1rem' }}>
+          <AddSubscriptionForm 
+            onSave={handleSave} 
+            initialData={editingSubscription}
+            onCancel={handleCancel}
+          />
+        </div>
+      ) : (
+        <div style={{ marginBottom: '1rem', textAlign: 'right' }}>
+          <button 
+            onClick={() => setIsAdding(true)}
+            style={{
+              display: 'inline-block',
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'var(--accent-color)',
+              color: '#0f172a',
+              textDecoration: 'none',
+              borderRadius: '0.5rem',
+              fontWeight: 'bold',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem'
+            }}
+          >
+            + Add Subscription
+          </button>
+        </div>
+      )}
 
       <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
         {subscriptions.map(sub => (
-          <SubscriptionCard key={sub.id} subscription={sub} />
+          <SubscriptionCard 
+            key={sub.id} 
+            subscription={sub} 
+            onEdit={handleEdit}
+          />
         ))}
-        {subscriptions.length === 0 && (
+        {subscriptions.length === 0 && !isAdding && (
           <p style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
             No subscriptions yet. Add one to get started!
           </p>

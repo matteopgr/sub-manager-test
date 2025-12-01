@@ -1,14 +1,28 @@
 import React, { useState } from 'react'
 import { useSubscriptions } from '../context/SubscriptionContext'
 
-export default function AddSubscriptionForm({ onSave }) {
-  const { addSubscription } = useSubscriptions()
-  const [formData, setFormData] = useState({
+export default function AddSubscriptionForm({ onSave, initialData = null, onCancel }) {
+  const { addSubscription, updateSubscription } = useSubscriptions()
+  const [formData, setFormData] = useState(initialData || {
     name: '',
     cost: '',
     startDate: new Date().toISOString().split('T')[0],
     cycle: 'monthly'
   })
+
+  // Update form data if initialData changes (e.g. when switching between edit/add)
+  React.useEffect(() => {
+    if (initialData) {
+      setFormData(initialData)
+    } else {
+      setFormData({
+        name: '',
+        cost: '',
+        startDate: new Date().toISOString().split('T')[0],
+        cycle: 'monthly'
+      })
+    }
+  }, [initialData])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -16,10 +30,14 @@ export default function AddSubscriptionForm({ onSave }) {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      await addSubscription(formData)
+      if (initialData) {
+        await updateSubscription(initialData.id, formData)
+      } else {
+        await addSubscription(formData)
+      }
       onSave()
     } catch (error) {
-      console.error("Error adding subscription: ", error)
+      console.error("Error saving subscription: ", error)
       alert("Failed to save subscription")
     } finally {
       setIsSubmitting(false)
@@ -46,7 +64,25 @@ export default function AddSubscriptionForm({ onSave }) {
 
   return (
     <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-      <h2 style={{ marginBottom: '2rem' }}>Add New Subscription</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2 style={{ margin: 0 }}>{initialData ? 'Edit Subscription' : 'Add New Subscription'}</h2>
+        {initialData && (
+          <button 
+            type="button" 
+            onClick={onCancel}
+            style={{ 
+              background: 'transparent', 
+              border: '1px solid var(--text-secondary)', 
+              color: 'var(--text-secondary)',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            Cancel
+          </button>
+        )}
+      </div>
       <form onSubmit={handleSubmit}>
         <div>
           <label style={labelStyle}>Service Name</label>
@@ -100,7 +136,7 @@ export default function AddSubscriptionForm({ onSave }) {
             cursor: isSubmitting ? 'not-allowed' : 'pointer'
           }}
         >
-          {isSubmitting ? 'Saving...' : 'Save Subscription'}
+          {isSubmitting ? 'Saving...' : (initialData ? 'Update Subscription' : 'Save Subscription')}
         </button>
       </form>
     </div>
