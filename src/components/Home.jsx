@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSubscriptions } from '../context/SubscriptionContext'
 import { useExpenses } from '../context/ExpensesContext'
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts'
 
 const COLORS = ['#38bdf8', '#818cf8', '#c084fc', '#f472b6', '#fb7185', '#34d399', '#fbbf24', '#a78bfa']
 const LINE_COLORS = {
@@ -102,6 +102,17 @@ export default function Home() {
     return dataPoint
   })
 
+  const monthlyNonCumulativeData = months.map((month, index) => {
+    const dataPoint = { month }
+    activeYears.forEach(year => {
+      if (!monthlyTotals[year]) return
+      // Only show dat up to current month for current year
+      if (year === currentYear && index > currentMonth) return
+      dataPoint[year] = monthlyTotals[year][index]
+    })
+    return dataPoint
+  })
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -119,10 +130,10 @@ export default function Home() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', alignItems: 'start' }}>
+    <div className="dashboard-grid">
       
       {/* Left Column: Totals & Pie Chart */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div className="totals-container">
         <div style={{ 
           backgroundColor: 'var(--card-bg)', 
           padding: '2rem', 
@@ -173,10 +184,35 @@ export default function Home() {
         </div>
       </div>
 
+        <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ textAlign: 'center', marginBottom: '1rem' }}>Monthly Expenses</h3>
+          <div style={{ flex: 1, minHeight: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyNonCumulativeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="month" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                {activeYears.map((year, index) => (
+                  <Bar 
+                    key={year}
+                    dataKey={year} 
+                    name={year}
+                    fill={Object.values(LINE_COLORS)[index % 3] || COLORS[index % COLORS.length]} 
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+
+
       {/* Right Column: Cumulative Line Chart */}
-      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '1rem', height: '100%', minHeight: '500px' }}>
+      <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '1rem', height: '100%', minHeight: '500px', display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ textAlign: 'center', marginBottom: '2rem' }}>Cumulative Spending (Year over Year)</h3>
-        <div style={{ height: '400px' }}>
+        <div style={{ flex: 1, minHeight: '400px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={cumulativeData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />

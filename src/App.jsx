@@ -39,7 +39,6 @@ function AppContent() {
       <div style={{ 
         flex: 1, 
         marginLeft: isSidebarCollapsed ? '80px' : '250px', 
-        maxWidth: '1000px', 
         padding: '2rem',
         transition: 'margin-left 0.3s ease'
       }}>

@@ -25,3 +25,36 @@ button {
   cursor: pointer;
   font-family: inherit;
 }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr 2fr;
+  gap: 2rem;
+  height: 100%;
+}
+
+@media (max-width: 1400px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.totals-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (max-width: 1400px) {
+  .totals-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 843px) {
+  .totals-container {
+    grid-template-columns: 1fr;
+  }
+}
