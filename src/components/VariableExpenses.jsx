@@ -13,6 +13,8 @@ export default function VariableExpenses() {
   const [editingId, setEditingId] = useState(null)
   const [isAdding, setIsAdding] = useState(false)
 
+  const [months, setMonths] = useState(1) // Number of months to repeat
+
   // --- Calculations for Total Card ---
   const currentMonthIndices = { month: new Date().getMonth(), year: new Date().getFullYear() }
   
@@ -50,7 +52,20 @@ export default function VariableExpenses() {
         await updateExpense(editingId, formData)
         setEditingId(null)
       } else {
-        await addExpense(formData)
+        // Handle recurring expenses
+        const startDate = new Date(formData.date)
+        const repeatCount = parseInt(months) || 1
+
+        for (let i = 0; i < repeatCount; i++) {
+          const currentDate = new Date(startDate)
+          currentDate.setMonth(startDate.getMonth() + i)
+          
+          const expenseData = {
+            ...formData,
+            date: currentDate.toISOString().split('T')[0]
+          }
+          await addExpense(expenseData)
+        }
       }
       setFormData({
         description: '',
@@ -58,6 +73,7 @@ export default function VariableExpenses() {
         date: new Date().toISOString().split('T')[0],
         category: 'General'
       })
+      setMonths(1)
       setIsAdding(false) // Close form after save
     } catch (error) {
       console.error("Error saving expense:", error)
@@ -87,6 +103,7 @@ export default function VariableExpenses() {
       date: new Date().toISOString().split('T')[0],
       category: 'General'
     })
+    setMonths(1)
     setIsAdding(false)
   }
 
@@ -167,6 +184,24 @@ export default function VariableExpenses() {
                 onChange={e => setFormData({...formData, date: e.target.value})}
               />
             </div>
+            
+            {!editingId && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                  Repeat for (months):
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="36"
+                  style={inputStyle}
+                  value={months}
+                  onChange={e => setMonths(Math.max(1, parseInt(e.target.value) || 1))}
+                  placeholder="1"
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -182,7 +217,7 @@ export default function VariableExpenses() {
                 opacity: isSubmitting ? 0.7 : 1
               }}
             >
-              {isSubmitting ? 'Saving...' : (editingId ? 'Update Expense' : 'Add Expense')}
+              {isSubmitting ? 'Saving...' : (editingId ? 'Update Expense' : (months > 1 ? `Add ${months} Expenses` : 'Add Expense'))}
             </button>
           </form>
         </div>

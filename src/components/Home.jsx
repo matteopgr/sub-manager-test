@@ -211,7 +211,7 @@ export default function Home() {
 
       {/* Right Column: Cumulative Line Chart */}
       <div style={{ backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '1rem', height: '100%', minHeight: '500px', display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ textAlign: 'center', marginBottom: '2rem' }}>Cumulative Spending (Year over Year)</h3>
+        <h3 style={{ textAlign: 'center', marginBottom: '2rem' }}>Cumulative Spending</h3>
         <div style={{ flex: 1, minHeight: '400px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={cumulativeData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
